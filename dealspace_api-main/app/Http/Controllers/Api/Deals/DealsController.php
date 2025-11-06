@@ -13,17 +13,17 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Deal;
 use Illuminate\Support\Facades\Gate;
-use App\Services\Subscriptions\SubscriptionUsageServiceInterface;
+use App\Services\Tenants\TenantSubscriptionServiceInterface;
 
 class DealsController extends Controller
 {
     protected $dealService;
-    protected $usageService;
+    protected $tenantService;
 
-    public function __construct(DealServiceInterface $dealService, SubscriptionUsageServiceInterface $usageService)
+    public function __construct(DealServiceInterface $dealService, TenantSubscriptionServiceInterface $tenantService)
     {
         $this->dealService = $dealService;
-        $this->usageService = $usageService;
+        $this->tenantService = $tenantService;
     }
 
     /**
@@ -101,19 +101,14 @@ class DealsController extends Controller
     public function store(StoreDealRequest $request): JsonResponse
     {
         $user = $request->user();
-        // Step 1: Ensure the user has an active subscription
-        if (! $user->subscribed('default')) {
-            return response()->json(['message' => 'Your Dealspace must have an active subscription.'], 402);
-        }
-        // Step 2: Check the user's usage for the 'deals' feature
-        $usage = $this->usageService->getUsage($user, 'deals');
-        // Step 3: If the limit is reached, return a 403 response
-        if ($usage['limit'] !== null && $usage['used'] >= $usage['limit']) {
-            return response()->json([
-                'message' => 'Your Dealspace has reached its limit for deals. Please upgrade your plan.'
-            ], 403);
-        }
+        $tenant = $user->tenant;
 
+        $usage = $tenant->getFeatureUsage('deals');
+        $limit = $tenant->planConfig()['limits']['deals'] ?? null;
+        if ($limit !== null && $usage >= $limit) {
+            return response()->json(['message' => 'Deal limit reached for your current plan. Please upgrade to add more deals.'], 403);
+        }
+        
         Gate::authorize('create', Deal::class);
         $deal = $this->dealService->create($request->validated());
 

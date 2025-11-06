@@ -601,6 +601,7 @@ export const PersonDetailsDialog = ({
   const [assignedUserId, setAssignedUserId] = useState(initialData?.assigned_user?.id || "")
   const [assignedLenderId, setAssignedLenderId] = useState(initialData?.assigned_lender?.id || "")
   const [assignedPondId, setAssignedPondId] = useState(initialData?.assigned_pond?.id || "")
+  const [assignedGroupId, setAssignedGroupId] = useState(initialData?.available_for_group_id || "")
   const [price, setPrice] = useState(initialData?.price?.toString() || "0")
   const [photo, setPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -614,6 +615,10 @@ export const PersonDetailsDialog = ({
   const [lenderSearchTerm, setLenderSearchTerm] = useState("")
   const [showLenderSearch, setShowLenderSearch] = useState(false)
   const [selectedLender, setSelectedLender] = useState<{ id: number; name: string; email: string } | null>(null)
+
+  const [groupSearchTerm, setGroupSearchTerm] = useState("")
+  const [showGroupSearch, setShowGroupSearch] = useState(false)
+  const [selectedGroup, setSelectedGroup] = useState<{ id: number; name: string } | null>(null)
 
   const { data: stagesData, isLoading: isLoadingStages } = useGetStagesQuery()
   const { data: pondsData, isLoading: isLoadingPonds } = useGetPondsQuery(
@@ -640,6 +645,11 @@ export const PersonDetailsDialog = ({
     },
     { skip: !showLenderSearch },
   )
+  const { data: groupsData, isLoading: isLoadingGroups } = useGetGroupsQuery({
+    page: 1,
+    per_page: 50,
+    search: groupSearchTerm,
+  })
 
   useEffect(() => {
     if (isOpen && initialData) {
@@ -649,6 +659,7 @@ export const PersonDetailsDialog = ({
       setAssignedUserId(initialData.assigned_user?.id || "")
       setAssignedLenderId(initialData.assigned_lender?.id || "")
       setAssignedPondId(initialData.assigned_pond?.id || "")
+      setAssignedGroupId(initialData.available_for_group_id || "")
       setSelectedPond(initialData.assigned_pond || null)
       setPrice(initialData.price?.toString() || "0")
       setPhotoPreview(null)
@@ -673,10 +684,18 @@ export const PersonDetailsDialog = ({
         setSelectedPond(null)
       }
 
+      if (initialData.assigned_user) {
+        setSelectedGroup(initialData.assigned_group ?? null)
+      } else {
+        setSelectedGroup(null)
+      }
+
       setAgentSearchTerm("")
       setShowAgentSearch(false)
       setLenderSearchTerm("")
       setShowLenderSearch(false)
+      setGroupSearchTerm("")
+      setShowGroupSearch(false)
     }
   }, [isOpen, initialData])
     const handlePondSelect = (pond: Pond) => {
@@ -693,11 +712,14 @@ export const PersonDetailsDialog = ({
       if (showLenderSearch && !(event.target as Element).closest(".lender-search-container")) {
         setShowLenderSearch(false)
       }
+      if (showGroupSearch && !(event.target as Element).closest(".group-search-container")) {
+        setShowGroupSearch(false)
+      }
     }
 
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showAgentSearch, showLenderSearch])
+  }, [showAgentSearch, showLenderSearch, showGroupSearch])
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -723,6 +745,7 @@ export const PersonDetailsDialog = ({
       assigned_user_id: Number(assignedUserId),
       assigned_pond_id: Number(assignedPondId),
       assigned_lender_id: Number(assignedLenderId),
+      available_for_group_id: Number(assignedGroupId),
       price: price,
       picture: photo,
     })
@@ -1016,6 +1039,70 @@ export const PersonDetailsDialog = ({
                     onClick={() => {
                       setSelectedLender(null)
                       setAssignedLenderId("")
+                    }}
+                    className="p-1 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    <X className="h-4 w-4 text-gray-500" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="assignedGroup" className="block text-sm font-medium text-gray-700">
+              Group
+            </label>
+            <div className="group-search-container">
+              {!selectedGroup ? (
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search and select group..."
+                    value={groupSearchTerm}
+                    onChange={(e) => {
+                      setGroupSearchTerm(e.target.value)
+                      setShowGroupSearch(true)
+                    }}
+                    onFocus={() => setShowGroupSearch(true)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {showGroupSearch && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {isLoadingGroups ? (
+                        <div className="p-3 text-center text-gray-500">Loading...</div>
+                      ) : groupsData?.data?.items?.length ? (
+                        groupsData.data.items.map((group: any) => (
+                          <button
+                            key={group.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedGroup({ id: group.id, name: group.name })
+                              setAssignedGroupId(group.id)
+                              setShowGroupSearch(false)
+                              setGroupSearchTerm("")
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                          >
+                            <div className="font-medium text-gray-900">{group.name}</div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="p-3 text-center text-gray-500">No groups found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-300 rounded-md">
+                  <div>
+                    <div className="font-medium text-gray-900">{selectedGroup.name}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedGroup(null)
+                      setAssignedGroupId("")
                     }}
                     className="p-1 rounded-md hover:bg-gray-200 transition-colors"
                   >

@@ -30,6 +30,9 @@ class Person extends Model
         'assigned_lender_id',
         'assigned_user_id',
         'assigned_pond_id',
+        'available_for_group_id',
+        'last_group_id',
+        'claim_expires_at',
         'picture',
         'background',
         'timeframe_id',
@@ -120,9 +123,18 @@ class Person extends Model
     {
         return $this->belongsTo(Pond::class, 'assigned_pond_id');
     }
+
+    /**
+     * Assigned group for the person
+     */
+    public function assignedGroup()
+    {
+        return $this->belongsTo(Group::class, 'available_for_group_id');
+    }
     
-    
-    // Custom field relationships
+    /**
+     * Custom field relationships
+     */
     public function customFieldValues(): HasMany
     {
         return $this->hasMany(PersonCustomFieldValue::class);
@@ -143,5 +155,10 @@ class Person extends Model
         );
     }
 
-
+    public function isClaimableBy(User $user, Group $group): bool
+    {
+        return $this->available_for_group_id === $group->id &&
+               $this->claim_expires_at > now() &&
+               $group->users->contains($user);
+    }
 }

@@ -664,6 +664,7 @@ class SubscriptionController extends Controller
         } catch (Exception $e) {
             Log::error('Failed to get usage', [
                 'user_id' => $request->user()->id,
+                'tenant_id' => $limits,
                 'error' => $e->getMessage(),
             ]);
 

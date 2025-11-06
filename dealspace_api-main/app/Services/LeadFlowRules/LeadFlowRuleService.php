@@ -289,9 +289,9 @@ class LeadFlowRuleService
             }
 
             // Assign to group
-            if ($rule->group_id) {
-                $person->group_id = $rule->group_id;
-                $updates['group_id'] = $rule->group_id;
+            if ($rule->available_for_group_id) {
+                $person->available_for_group_id = $rule->available_for_group_id;
+                $updates['available_for_group_id'] = $rule->available_for_group_id;
             }
 
             // Assign to pond

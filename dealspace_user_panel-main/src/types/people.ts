@@ -1,6 +1,7 @@
 import { Stage } from "./stages"
 import { User } from "./users"
 import { Pond } from "./ponds"
+import { Group } from "./groups"
 
 // People Types
 export interface Person {
@@ -30,7 +31,11 @@ export interface Person {
     assigned_user?: User
     assigned_pond?: Pond
     assigned_lender?: User
+    assigned_group?: Group
     custom_fields?: CustomField[]
+    available_for_group_id?: number | null
+    claim_expires_at?: string | null
+    last_group_id?: number | null
   }
   
   export interface CustomField {
@@ -111,6 +116,7 @@ export interface Person {
     assigned_lender_id?: number | null
     assigned_user_id?: number | null
     assigned_pond_id?: number | null
+    available_for_group_id?: number | null
     timeframe_id: number
     picture?: File | null
     emails: Omit<Email, "id" | "person_id" | "created_at" | "updated_at">[]
@@ -118,6 +124,7 @@ export interface Person {
     addresses: Omit<Address, "id" | "person_id" | "created_at" | "updated_at">[]
     tags: Omit<Tag, "id" | "person_id" | "created_at" | "updated_at">[]
     collaborators_ids?: number[]
+    assign_to_group?: number | null
   }
   
   export interface UpdatePersonRequest {
@@ -136,6 +143,7 @@ export interface Person {
     assigned_lender_id?: number | null
     assigned_user_id?: number | null
     assigned_pond_id?: number | null
+    available_for_group_id?: number | null
     timeframe_id?: number
     picture?: File | null
     emails?: Omit<Email, "id" | "person_id" | "created_at" | "updated_at">[]

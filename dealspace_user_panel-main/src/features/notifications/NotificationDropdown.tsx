@@ -1,70 +1,69 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useNotifications } from "../../hooks/useNotifications"
 import { formatDistanceToNow } from "date-fns"
 import { DropdownItem } from "../../components/ui/dropdown/DropdownItem"
 import { Dropdown } from "../../components/ui/dropdown/Dropdown"
 import { ASSETS_URL } from "../../utils/helpers"
-import toast from "react-hot-toast"
+import { toast } from "react-toastify"
+import { ClaimLeadModal } from "../people/components/ClaimLeadModal"
+import { useGetPersonByIdQuery } from "../people/peopleApi"
 
 export default function NotificationDropdown() {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
+  const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null)
+
+  // Get person data if claim modal is open
+  const { data: personData } = useGetPersonByIdQuery(
+    { id: selectedPersonId || 0 },
+    { skip: !selectedPersonId }
+  )
+
+  // Handle notification click
+  const handleNotificationClick = (notification: any) => {
+    // Check if it's a claim notification
+    if (notification.action?.includes('?claim=1')) {
+      // Extract person ID from URL
+      const personId = Number(notification.action.split('/')[2]?.split('?')[0])
+      if (personId) {
+        setSelectedPersonId(personId)
+        setIsClaimModalOpen(true)
+        setIsOpen(false) // Close dropdown
+        return
+      }
+    }
+    
+    // For other notifications, use react-router navigation
+    if (notification.action) {
+      navigate(notification.action)
+    }
+  }
 
   // Stabilize the callback function to prevent re-subscriptions
   const handleNewNotification = useCallback((newNotification: any) => {
     // Check if toast already exists for this notification
     const toastId = `notification-${newNotification.id}`
+    if (toast.isActive(toastId)) return
 
-    toast.custom(
-      (t) => (
-        <div
-          className={`${
-            t.visible ? "animate-enter" : "animate-leave"
-          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
-        >
-          <Link to={newNotification.action} className="flex-1 w-0 p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 pt-0.5">
-                {newNotification.image ? (
-                  <img
-                    className="h-10 w-10 rounded-full"
-                    src={ASSETS_URL + "/storage/" + newNotification.image || "/placeholder.svg"}
-                    alt="Notification"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-10 h-10 bg-blue-500 rounded-full">
-                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M10 2C6.686 2 4 4.686 4 8v4.586L2.293 14.293A1 1 0 0 0 3 16h14a1 1 0 0 0 .707-1.707L16 12.586V8c0-3.314-2.686-6-6-6zM8 18a2 2 0 1 0 4 0H8z"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900">{newNotification.title}</p>
-                <p className="mt-1 text-sm text-gray-500">{newNotification.message}</p>
-              </div>
-            </div>
-          </Link>
-          <div className="flex border-l border-gray-200">
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      ),
+    toast.info(
+      <div className="cursor-pointer" onClick={() => handleNotificationClick(newNotification)}>
+        <div className="font-medium">{newNotification.title}</div>
+        <div className="text-sm">{newNotification.message}</div>
+      </div>,
       {
-        id: toastId, // Use unique ID to prevent duplicates
-        duration: 6000,
-      },
+        toastId,
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      }
     )
   }, [])
 
@@ -200,9 +199,9 @@ export default function NotificationDropdown() {
           ) : (
             notifications.slice(0, 8).map((notification) => (
               <li key={notification.id}>
-                <Link to={notification.action || "#"}>
+                <div onClick={() => handleNotificationClick(notification)}>
                   <DropdownItem
-                    onItemClick={closeDropdown}
+                    onItemClick={() => {}}
                     className={`flex gap-3 mb-2 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5 ${
                       !notification.read_at ? "bg-blue-50 dark:bg-blue-900/20" : ""
                     }`}
@@ -225,7 +224,7 @@ export default function NotificationDropdown() {
                       </span>
                     </span>
                   </DropdownItem>
-                </Link>
+                </div>
               </li>
             ))
           )}
@@ -239,6 +238,16 @@ export default function NotificationDropdown() {
           View All Notifications
         </Link>
       </Dropdown>
+
+      {/* Claim Modal */}
+      <ClaimLeadModal
+        isOpen={isClaimModalOpen}
+        onClose={() => {
+          setIsClaimModalOpen(false)
+          setSelectedPersonId(null)
+        }}
+        person={personData?.data?.person || null}
+      />
     </div>
   )
 }

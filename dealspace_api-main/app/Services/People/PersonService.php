@@ -14,6 +14,8 @@ use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use App\Enums\RoleEnum;
 use Illuminate\Support\Facades\Auth;
+use App\Services\Groups\GroupLeadDistributionService;
+use App\Models\Group;
 
 class PersonService implements PersonServiceInterface
 {
@@ -90,6 +92,10 @@ class PersonService implements PersonServiceInterface
 
         if (!empty($filters['assigned_pond_id'])) {
             $query->where('assigned_pond_id', $filters['assigned_pond_id']);
+        }
+
+        if(!empty($filters['available_group_id'])){
+            $query->where('available_for_group_id', $filters['available_for_group_id']);
         }
 
         if (!empty($filters['search'])) {
@@ -177,6 +183,17 @@ class PersonService implements PersonServiceInterface
             }
 
             $person = Person::create($data);
+
+            // If the request asked to assign to a group or auto-distribute, handle distribution
+            if (!empty($data['assign_to_group']) || !empty($data['group_id'])) {
+                $groupId = $data['group_id'] ?? $data['assign_to_group'];
+                $group = Group::find($groupId);
+                if ($group) {
+                    // Keep last_group_id for redistributions
+                    $person->update(['last_group_id' => $group->id]);
+                    app(GroupLeadDistributionService::class)->distributeLead($person, $group);
+                }
+            }
 
             // Handle emails if provided
             if (!empty($emails)) {

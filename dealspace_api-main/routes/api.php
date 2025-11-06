@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\EmailAccountsController;
 use App\Http\Controllers\Api\EmailsController;
 use App\Http\Controllers\Api\EnumsController;
 use App\Http\Controllers\Api\GroupsController;
+use App\Http\Controllers\Api\GroupLeadController;
 use App\Http\Controllers\Api\NotesController;
 use App\Http\Controllers\Api\NotificationsController;
 use App\Http\Controllers\Api\EmailsOAuthController;
@@ -157,6 +158,10 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('people')->group(function () {
+        // Person Distribute
+        Route::post('{personId}/distribute/{groupId}', [GroupLeadController::class, 'distributeToGroup']);
+            // Person Claim
+        Route::post('{personId}/claim=1', [GroupLeadController::class, 'claim']);
         // People-specific nested routes
         Route::prefix('/{personId}')->group(function () {
             // Collaborators
@@ -179,6 +184,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
 
             // Files
             Route::apiResource('files', FilesController::class);
+
         });
 
         // People configuration routes
@@ -235,7 +241,6 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
         Route::put('{groupId}/users/{userId}/sort-order/{sortOrder}', [GroupsController::class, 'updateUserSortOrder']);
     });
     Route::apiResource('groups', GroupsController::class);
-
     /*
     |--------------------------------------------------------------------------
     | Communication Routes
@@ -560,6 +565,10 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
         Route::delete('/{actionPlan}', [ActionPlanController::class, 'destroy']);
         Route::get('/{actionPlan}/statistics', [ActionPlanController::class, 'statistics']);
         Route::post('/{actionPlan}/assign', [ActionPlanController::class, 'assignToPerson']);
+    });
+
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('/leads/{lead}/claim', [GroupLeadController::class, 'claimLead']);
     });
 });
 

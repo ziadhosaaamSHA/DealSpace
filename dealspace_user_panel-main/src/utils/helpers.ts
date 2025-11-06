@@ -18,7 +18,7 @@ export const getInitials = (name:string) => {
     
     if (parts.length >= 2) {
       // Return first letter of first and second name
-      return parts[0][0].toUpperCase() + parts[1][0].toUpperCase();
+      return parts[0][0]?.toUpperCase() + parts[1][0]?.toUpperCase();
     } else {
       // Return first two letters of the single name
       return name.substring(0, 2).toUpperCase();

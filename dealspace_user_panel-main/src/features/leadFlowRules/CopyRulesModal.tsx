@@ -84,7 +84,7 @@ export const CopyRulesModal: React.FC<CopyRulesModalProps> = ({
                   <select
                     value={fromSourceType}
                     onChange={(e) => setFromSourceType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
                     required
                   >
                     <option value="">Select source type</option>
@@ -103,7 +103,7 @@ export const CopyRulesModal: React.FC<CopyRulesModalProps> = ({
                     type="text"
                     value={fromSourceName}
                     onChange={(e) => setFromSourceName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
                     placeholder="e.g., Buyers, Sellers"
                     required
                   />
@@ -115,14 +115,14 @@ export const CopyRulesModal: React.FC<CopyRulesModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="px-4 py-2 border border-brand-100 rounded-md shadow-sm text-sm font-medium text-brand-700 bg-white hover:bg-brand-25"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Copying...' : 'Copy Rules'}
               </button>

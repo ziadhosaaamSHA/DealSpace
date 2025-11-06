@@ -174,7 +174,7 @@ export const LeadFlowRuleModal: React.FC<LeadFlowRuleModalProps> = ({
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., High-value buyers"
                   required
                 />
@@ -187,7 +187,7 @@ export const LeadFlowRuleModal: React.FC<LeadFlowRuleModalProps> = ({
                     type="checkbox"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-brand-500 focus:ring-brand-500 border-gray-300 rounded"
                   />
                   <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
                 </label>
@@ -197,7 +197,7 @@ export const LeadFlowRuleModal: React.FC<LeadFlowRuleModalProps> = ({
                     type="checkbox"
                     checked={formData.is_default}
                     onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-brand-500 focus:ring-brand-500 border-gray-300 rounded"
                   />
                   <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Default Rule</span>
                 </label>
@@ -273,7 +273,7 @@ export const LeadFlowRuleModal: React.FC<LeadFlowRuleModalProps> = ({
                   <button
                     type="button"
                     onClick={handleAddCondition}
-                    className="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    className="mt-3 inline-flex items-center px-3 py-2 border border-brand-100 shadow-sm text-sm font-medium rounded-md text-brand-600 bg-white hover:bg-brand-25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-200"
                   >
                     Add Condition
                   </button>
@@ -371,14 +371,14 @@ export const LeadFlowRuleModal: React.FC<LeadFlowRuleModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="px-4 py-2 border border-brand-100 rounded-md shadow-sm text-sm font-medium text-brand-700 bg-white hover:bg-brand-25"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isCreating || isUpdating}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isCreating || isUpdating ? 'Saving...' : 'Save'}
               </button>

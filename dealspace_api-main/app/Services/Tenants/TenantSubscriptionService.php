@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Enums\RoleEnum;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Laravel\Cashier\Exceptions\IncompletePayment;
 
 class TenantSubscriptionService implements TenantSubscriptionServiceInterface
@@ -341,36 +342,81 @@ class TenantSubscriptionService implements TenantSubscriptionServiceInterface
      */
     public function cancelSubscription(Tenant $tenant): void
     {
-        $subscription = $tenant->subscription('default');
-        
-        if (!$subscription) {
-            throw new \RuntimeException('No active subscription found');
+        try {
+            $subscription = $tenant->subscription('default');
+            
+            if (!$subscription) {
+                throw new \RuntimeException('No active subscription found');
+            }
+
+            $subscription->cancel();
+
+            Log::info('Subscription canceled at period end', [
+                'tenant_id' => $tenant->id,
+                'ends_at' => $subscription->ends_at,
+            ]);
+        } catch (\Exception $e) {
+            // Handle incomplete payment scenario
+            Log::warning('Subscription cancellation failed', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+            throw new \RuntimeException('Cannot cancel subscription.');
         }
-
-        $subscription->cancelAtEndOfPeriod();
-
-        Log::info('Subscription canceled at period end', [
-            'tenant_id' => $tenant->id,
-            'ends_at' => $subscription->ends_at,
-        ]);
     }
-
     /**
      * Cancel subscription immediately.
      */
     public function cancelSubscriptionNow(Tenant $tenant): void
     {
-        $subscription = $tenant->subscription('default');
-        
-        if (!$subscription) {
-            throw new \RuntimeException('No active subscription found');
+        try {
+            $subscription = $tenant->subscription('default');
+
+            if (!$subscription) {
+                throw new \RuntimeException('No active subscription found');
+            }
+
+            // Defensive check: owner should not be null. If it is, suggest configuration fix.
+            if (!$subscription->owner) {
+                Log::error('Subscription owner is null when attempting immediate cancel', [
+                    'tenant_id' => $tenant->id,
+                    'subscription_id' => $subscription->id,
+                ]);
+
+                throw new \RuntimeException('Subscription owner is null. Make sure Cashier is configured to use the Tenant model: Cashier::useCustomerModel(\App\\Models\\Tenant::class)');
+            }
+
+            // Cancel on Stripe immediately
+            $subscription->cancelNow();
+
+            // Keep stripe id for logging after delete
+            $stripeId = $subscription->stripe_id;
+
+            // Delete subscription and its items from DB inside a transaction
+            DB::transaction(function () use ($subscription, $stripeId, $tenant) {
+                // Delete subscription items first
+                $subscription->items()->delete();
+
+                // Then delete the subscription row itself
+                $subscription->delete();
+
+                Log::info('Subscription record deleted from DB after immediate cancellation', [
+                    'tenant_id' => $tenant->id,
+                    'stripe_id' => $stripeId,
+                ]);
+            });
+
+            Log::info('Subscription canceled immediately', [
+                'tenant_id' => $tenant->id,
+                'stripe_id' => $stripeId,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Subscription cancellation failed', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+            throw new \RuntimeException('Cannot cancel subscription.');
         }
-
-        $subscription->cancelNow();
-
-        Log::info('Subscription canceled immediately', [
-            'tenant_id' => $tenant->id,
-        ]);
     }
 
     /**

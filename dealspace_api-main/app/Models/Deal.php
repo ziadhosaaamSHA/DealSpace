@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 use App\Enums\RoleEnum;
 use App\Policies\PersonPolicy;
+use App\Scopes\DealScopes;
 
 class Deal extends Model
 {
     use BelongsToTenant;
+    use DealScopes;
 
     protected $fillable = [
         'name',
@@ -75,20 +77,5 @@ class Deal extends Model
     public function attachments()
     {
         return $this->hasMany(DealAttachment::class);
-    }
-
-    /**
-     * Scope a query to only include deals visible to the user.
-     */
-    public function scopeVisibleTo(Builder $query, User $user): Builder
-    {
-        $role = $user->role instanceof RoleEnum ? $user->role : RoleEnum::from($user->role);
-        return match ($role) {
-            RoleEnum::OWNER, RoleEnum::ADMIN => $query,
-            RoleEnum::AGENT => $query->where(function (Builder $q) use ($user) {
-                $q->whereHas('users', fn ($qq) => $qq->where('users.id', $user->id))
-                  ->orWhereHas('people', fn ($qq) => $qq->where('assigned_user_id', $user->id));
-            })
-        };
     }
 }   

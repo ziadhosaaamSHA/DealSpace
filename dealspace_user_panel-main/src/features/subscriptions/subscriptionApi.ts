@@ -13,8 +13,8 @@ interface TenantStatusResponse {
   success: boolean
   data: {
     tenant_id: string
-    has_subscription: boolean
-    subscription_holder: {
+    subscribed: boolean
+    owner: {
       id: number
       name: string
       email: string

@@ -175,6 +175,7 @@ export default function CreateDealModal({ isOpen, onClose, onSuccess, stageId, t
         onClose()
       }
     } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to create deal")
       console.error("Failed to create deal:", error)
     }
   }

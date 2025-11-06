@@ -4,17 +4,18 @@ import {
   useGetLeadFlowRulesQuery,
   useDeleteLeadFlowRuleMutation,
   useReorderRulesMutation,
-  useCopyRulesFromSourceMutation,
 } from '../../features/leadFlowRules/leadFlowRulesApi';
 import { LeadFlowRule } from '../../types/leadFlowRules';
 import { LeadFlowRuleModal } from './LeadFlowRuleModal';
 import { CopyRulesModal } from './CopyRulesModal';
+import AdminLayout from "../../layout/AdminLayout"
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { FiPlus, FiCopy, FiTrash2, FiMenu, FiInfo } from 'react-icons/fi';
 
 export const LeadFlowRulesPage: React.FC = () => {
-  const [sourceType, setSourceType] = useState<string>('');
-  const [sourceName, setSourceName] = useState<string>('');
+  // sources removed: keep empty values for modal compatibility
+  const sourceType = '';
+  const sourceName = '';
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<LeadFlowRule | null>(null);
@@ -26,7 +27,6 @@ export const LeadFlowRulesPage: React.FC = () => {
 
   const [deleteRule] = useDeleteLeadFlowRuleMutation();
   const [reorderRules] = useReorderRulesMutation();
-  const [copyRules] = useCopyRulesFromSourceMutation();
 
   const rules = rulesResponse?.data || [];
   const nonDefaultRules = rules.filter((r) => !r.is_default);
@@ -72,15 +72,10 @@ export const LeadFlowRulesPage: React.FC = () => {
     setEditingRule(rule);
     setIsRuleModalOpen(true);
   };
-
-  const handleCopyRules = () => {
-    setIsCopyModalOpen(true);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <AdminLayout>
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -90,52 +85,16 @@ export const LeadFlowRulesPage: React.FC = () => {
               </p>
             </div>
           </div>
-
-          {/* Source Selection */}
-          <div className="mt-4 flex items-center space-x-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Source Type
-              </label>
-              <select
-                value={sourceType}
-                onChange={(e) => setSourceType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="">All Sources</option>
-                <option value="Website">Website</option>
-                <option value="Zillow">Zillow</option>
-                <option value="API">API</option>
-                <option value="Manual">Manual</option>
-              </select>
-            </div>
-
-            {sourceType && (
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Source Name
-                </label>
-                <input
-                  type="text"
-                  value={sourceName}
-                  onChange={(e) => setSourceName(e.target.value)}
-                  placeholder="e.g., Buyers, Chuck Finley"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-            )}
-          </div>
         </div>
-      </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Info Banner */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Rules for {sourceType || 'All'} • {sourceName || 'All Sources'}</strong>
+        {/* Info Banner (brand) */}
+        <div className="bg-brand-25 dark:bg-brand-950/10 border border-brand-100 dark:border-brand-800 rounded-lg p-4 mb-6">
+          <p className="text-sm text-brand-700 dark:text-brand-200">
+            <strong>Lead Flow Rules</strong>
             <br />
-            Rules are processed from top to bottom, drag and drop to re-order.
+            Rules are processed from top to bottom — drag and drop to reorder.
           </p>
         </div>
 
@@ -143,25 +102,17 @@ export const LeadFlowRulesPage: React.FC = () => {
         <div className="flex items-center space-x-3 mb-6">
           <button
             onClick={handleAddRule}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-500 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
           >
-            Add Another Rule
+            <Plus className="-ml-1 mr-2 h-5 w-5" />
+            Add Rule
           </button>
-
-          {nonDefaultRules.length > 0 && (
-            <button
-              onClick={handleCopyRules}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-            >
-              Copy From Other Lead Flow
-            </button>
-          )}
         </div>
 
         {/* Rules List */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Loading rules...</p>
           </div>
         ) : (
@@ -209,7 +160,7 @@ export const LeadFlowRulesPage: React.FC = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="p-6">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                    Default Rule (if none of the above apply)
+                    {defaultRule.name || 'Default Rule (if none of the above apply)'}
                   </h3>
                   <DefaultRuleCard
                     rule={defaultRule}
@@ -229,7 +180,7 @@ export const LeadFlowRulesPage: React.FC = () => {
                 <div className="mt-6">
                   <button
                     onClick={handleAddRule}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-500 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
                   >
                     Add Rule
                   </button>
@@ -263,6 +214,7 @@ export const LeadFlowRulesPage: React.FC = () => {
         />
       )}
     </div>
+    </AdminLayout>
   );
 };
 
@@ -286,9 +238,10 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, index, dragHandleProps, onEdi
 
           <div className="flex-1">
             <div className="flex items-center mb-3">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mr-3">
-                {index}. Rule
-              </span>
+              <div className="flex-1">
+                <h4 className="text-base font-semibold text-gray-900 dark:text-white">{rule.name}</h4>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{index}. Rule</span>
+              </div>
               {!rule.is_active && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                   Inactive
@@ -368,15 +321,14 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, index, dragHandleProps, onEdi
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             title="Edit rule"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Edit2 className="h-5 w-5" />
           </button>
           <button
             onClick={onDelete}
             className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
             title="Delete rule"
           >
+            <Trash2 className="h-5 w-5" />
           </button>
         </div>
       </div>

@@ -116,6 +116,7 @@ class PeopleRepository implements PeopleRepositoryInterface
                 $q->whereIn('assigned_lender_id', array_merge($users, $leaders))
                     ->orWhereIn('assigned_user_id', array_merge($users, $leaders))
                     ->orWhereIn('assigned_pond_id', array_merge($users, $leaders))
+                    ->orWhereIn('available_group_id', array_merge($users, $leaders))
                     ->orWhereHas('collaborators', function ($q) use ($users, $leaders) {
                         $q->whereIn('user_id', array_merge($users, $leaders));
                     });
@@ -127,6 +128,7 @@ class PeopleRepository implements PeopleRepositoryInterface
                 $q->whereIn('assigned_lender_id', $filters['user_ids'])
                     ->orWhereIn('assigned_user_id', $filters['user_ids'])
                     ->orWhereIn('assigned_pond_id', $filters['user_ids'])
+                    ->orWhereIn('available_for_group_id', $filters['user_ids'])
                     ->orWhereHas('collaborators', function ($q) use ($filters) {
                         $q->whereIn('user_id', $filters['user_ids']);
                     });

@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Services\Groups;
+
+use App\Models\Group;
+use App\Models\Person;
+use App\Jobs\HandleExpiredLeadClaims;
+use Illuminate\Support\Facades\Cache;
+use Carbon\Carbon;
+use App\Events\LeadAvailableForClaim;
+use App\Events\LeadAssigned;
+
+class GroupLeadDistributionService
+{
+    public function distributeLead(Person $lead, Group $group): void 
+    {
+        switch ($group->distribution) {
+            case 0: // First-to-claim
+                $this->handleFirstToClaim($lead, $group);
+                break;
+            case 1: // Round Robin
+                $this->handleRoundRobin($lead, $group);
+                break;
+        }
+    }
+
+    private function handleFirstToClaim(Person $lead, Group $group): void
+    {
+        $expiresAt = now()->addMinutes($group->claim_window);
+        
+        // Set lead as available for claim with expiration
+        $lead->update([
+            'claim_expires_at' => $expiresAt,
+            'available_for_group_id' => $group->id
+        ]);
+
+        // Schedule the expiry handler to run exactly when claim window ends
+        HandleExpiredLeadClaims::dispatch()->delay($expiresAt);
+
+        // Notify group members about new lead
+        event(new LeadAvailableForClaim($lead, $group));
+    }
+
+    private function handleRoundRobin(Person $lead, Group $group): void
+    {
+        $users = $group->users()->orderBy('id')->get();
+        
+        // Get last assigned user index from cache
+        $lastIndex = Cache::get("group:{$group->id}:last_assigned", -1);
+        
+        // Get next user in rotation
+        $nextIndex = ($lastIndex + 1) % count($users);
+        $nextUser = $users[$nextIndex];
+        
+        // Assign lead to next user
+        $lead->update([
+            'assigned_user_id' => $nextUser->id
+        ]);
+        
+        // Update cache
+        Cache::put("group:{$group->id}:last_assigned", $nextIndex);
+        
+        // Notify user about new lead
+        event(new LeadAssigned($lead, $nextUser));
+    }
+}

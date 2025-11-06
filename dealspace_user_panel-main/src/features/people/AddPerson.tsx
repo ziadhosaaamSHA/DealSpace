@@ -2,16 +2,18 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useCreatePersonMutation, useGetStagesQuery } from "./peopleApi"
+import { useCreatePersonMutation, useGetStagesQuery, useDistributePersonToGroupMutation } from "./peopleApi"
 import { useNavigate } from "react-router"
 import { X, Plus, Check, ArrowLeft } from "lucide-react"
 import { toast } from "react-toastify"
 import { useGetUsersQuery } from "../users/usersApi"
+import { useGetGroupsQuery } from "../groups/groupsApi"
 
 export default function CreatePerson() {
   const navigate = useNavigate()
   const [createPerson, { isLoading }] = useCreatePersonMutation()
   const { data: stagesData, isLoading: isLoadingStages } = useGetStagesQuery()
+  const [distributePersonToGroup] = useDistributePersonToGroupMutation()
 
   // Form state
   const [formData, setFormData] = useState({
@@ -63,6 +65,12 @@ export default function CreatePerson() {
     },
     { skip: !showAssignedToSearch },
   )
+
+  // Groups: simple select for assignment on create
+  const [groupSearchTerm, setGroupSearchTerm] = useState("")
+  const [selectedGroup, setSelectedGroup] = useState<{ id: number; name: string } | null>(null)
+  const [assignedGroupId, setAssignedGroupId] = useState<number | "">("")
+  const { data: groupsData, isLoading: isLoadingGroups } = useGetGroupsQuery({ page: 1, per_page: 100 })
 
   // Set default stage when stages are loaded
   useEffect(() => {
@@ -236,13 +244,16 @@ export default function CreatePerson() {
       }
 
       // Call API to create person
-      await createPerson(personData).unwrap()
-
-      // Show success message and navigate back to people list
+      const createdPerson = await createPerson(personData).unwrap()
       toast.success("Person created successfully!")
       navigate("/people")
-    } catch (error) {
-      console.error("Failed to create person:", error)
+      // Show success message and navigate back to people list
+      if (selectedGroup && createdPerson?.data?.id) {
+        await distributePersonToGroup({ personId: createdPerson.data.id, groupId: selectedGroup.id }).unwrap()
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "An error occurred. Please check the form for errors.")
+      console.error("An error occurred:", error)
     }
   }
 
@@ -310,6 +321,36 @@ export default function CreatePerson() {
               </div>
 
               {/* Stage and Source */}
+
+              {/* Group assignment (optional) */}
+              <div>
+                <label htmlFor="group" className="block text-sm font-medium text-gray-700 mb-1">
+                  Group (for distribution)
+                </label>
+                <select
+                  id="group"
+                  name="group"
+                  value={selectedGroup ? String(selectedGroup.id) : assignedGroupId}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (!v) {
+                      setSelectedGroup(null)
+                      setAssignedGroupId("")
+                    } else {
+                      const id = Number(v)
+                      const g = groupsData?.data?.items?.find((gg: any) => gg.id === id)
+                      setSelectedGroup(g ? { id: g.id, name: g.name } : null)
+                      setAssignedGroupId(id)
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">None</option>
+                  {isLoadingGroups ? null : groupsData?.data?.items?.map((g: any) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label htmlFor="stageId" className="block text-sm font-medium text-gray-700 mb-1">
                   Stage
