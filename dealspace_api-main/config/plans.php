@@ -13,9 +13,9 @@ return [
             'Basic email support',
         ],
         'limits' => [
-            'users' => 3,
-            'deals' => 10,
-            'contacts' => 50,
+            'users' => 5,
+            'deals' => 4,
+            'contacts' => 5,
             'campaigns' => 1,
             'automations' => 0,
             'storage_gb' => 1,

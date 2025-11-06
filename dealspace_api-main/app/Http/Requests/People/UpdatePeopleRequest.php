@@ -26,6 +26,7 @@ class UpdatePeopleRequest extends FormRequest
             'assigned_lender_id' => 'nullable|exists:users,id',
             'assigned_user_id' => 'nullable|exists:users,id',
             'assigned_pond_id' => 'nullable|exists:ponds,id',
+            'available_for_group_id' => 'nullable|exists:groups,id',
             'background' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'timeframe_id' => 'nullable|integer',

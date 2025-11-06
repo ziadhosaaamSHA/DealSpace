@@ -92,7 +92,8 @@ export default function SubscriptionUsage() {
       </span>
     )
   }
-
+  console.log(status);
+  console.log(invoices);
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num / 100)
@@ -184,12 +185,6 @@ export default function SubscriptionUsage() {
               <div className="mt-6 pt-6 border-t border-blue-200">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Current Period</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {subscription.current_period_start && formatDate(subscription.current_period_start)}
-                    </p>
-                  </div>
-                  <div>
                     <p className="text-sm text-gray-600 mb-1">Renews On</p>
                     <p className="text-sm font-medium text-gray-900">
                       {subscription.current_period_end && formatDate(subscription.current_period_end)}
@@ -220,9 +215,9 @@ export default function SubscriptionUsage() {
                 <div>
                   <p className="text-sm text-gray-600">Subscription Holder</p>
                   <p className="text-lg font-semibold text-gray-900 mt-1">
-                    {status?.data?.subscription_holder?.name || 'N/A'}
+                    {status?.data?.owner?.name || 'N/A'}
                   </p>
-                  <p className="text-sm text-gray-500">{status?.data?.subscription_holder?.role}</p>
+                  <p className="text-sm text-gray-500">{status?.data?.owner?.role}</p>
                 </div>
                 <Calendar className="w-8 h-8 text-gray-400" />
               </div>
@@ -380,7 +375,7 @@ export default function SubscriptionUsage() {
                         {formatDate(invoice.date)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {formatCurrency(invoice.total)}
+                        {invoice.total}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -388,7 +383,7 @@ export default function SubscriptionUsage() {
                           invoice.status === 'open' ? 'bg-blue-100 text-blue-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
-                          {invoice.status}
+                          {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

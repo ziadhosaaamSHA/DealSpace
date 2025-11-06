@@ -11,6 +11,7 @@ interface PeopleFilters {
   user_ids?: number[]
   deal_type_id?: number | null
   assigned_pond_id?: number | null
+  available_for_group_id?: number | null
 }
 
 interface GetPeopleParams {
@@ -22,6 +23,7 @@ interface GetPeopleParams {
   user_ids?: number[]
   deal_type_id?: number | null
   assigned_pond_id?: number | null
+  available_for_group_id?: number | null
 }
 interface GetEventsParams {
   person_id?: number
@@ -45,6 +47,11 @@ interface BulkActionParams {
   filters?: PeopleFilters
 }
 
+interface DistributeToGroupParams {
+  personId?: number
+  groupId?: number
+}
+
 interface CampaignData {
   name: string
   description: string
@@ -62,6 +69,7 @@ interface CampaignData {
   search?: string
   deal_type_id?: number | null
   assigned_pond_id?: number | null
+  available_for_group_id?: number | null
 }
 
 interface EmailAccount {
@@ -88,13 +96,14 @@ export const peopleApi = createApi({
   ],
   endpoints: (builder) => ({
     getPeople: builder.query<PaginatedResponse<Person>, GetPeopleParams>({
-      query: ({ page, per_page, search, stage_id, team_id, user_ids, deal_type_id, assigned_pond_id }) => {
+      query: ({ page, per_page, search, stage_id, team_id, user_ids, deal_type_id, assigned_pond_id, available_for_group_id }) => {
         const params: any = { page, per_page }
         if (search) params.search = search
         if (stage_id) params.stage_id = stage_id
         if (team_id) params.team_id = team_id
         if (deal_type_id) params.deal_type_id = deal_type_id
         if (assigned_pond_id) params.assigned_pond_id = assigned_pond_id
+        if (available_for_group_id) params.available_for_group_id = available_for_group_id
         if (user_ids && user_ids.length > 0) {
           // Handle array parameters - adjust based on your API expectations
           user_ids.forEach((id, index) => {
@@ -118,6 +127,7 @@ export const peopleApi = createApi({
           if (filters.stage_id) params.stage_id = filters.stage_id
           if (filters.team_id) params.team_id = filters.team_id
           if (filters.assigned_pond_id) params.assigned_pond_id = filters.assigned_pond_id
+          if (filters.available_for_group_id) params.available_for_group_id = filters.available_for_group_id
           if (filters.deal_type_id) params.deal_type_id = filters.deal_type_id
           if (filters.user_ids && filters.user_ids.length > 0) {
             filters.user_ids.forEach((userId, index) => {
@@ -161,6 +171,14 @@ export const peopleApi = createApi({
         },
       }),
       invalidatesTags: (_result, _error, { id }) => [{ type: "Person", id }, "Person"],
+    }),
+    distributePersonToGroup: builder.mutation<ApiResponse<Person>, DistributeToGroupParams>({
+      query: ({ personId, groupId }) => ({
+        url: `/people/${personId}/distribute/${groupId}`,
+        method: "POST",
+        body: { personId, groupId },
+      }),
+      
     }),
 
     deletePerson: builder.mutation<ApiResponse<Person>, number>({
@@ -497,6 +515,16 @@ export const peopleApi = createApi({
       },
       providesTags: (_result, _error, { person_id }) => [{ type: "PersonEvent", id: person_id || "LIST" }],
     }),
+
+    claimPerson: builder.mutation<any, { personId: number }>({
+      query: ({ personId }) => ({
+        url: `/people/${personId}/claim=1`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, { personId }) => [
+        { type: "Person", id: personId },
+      ],
+    }),
   }),
 })
 
@@ -510,6 +538,7 @@ export const {
   useLazyDownloadTemplateQuery,
   useImportUsersMutation,
   useBulkExportPeopleMutation,
+  useDistributePersonToGroupMutation,
   // Campaign exports
   useSendEmailCampaignMutation,
   // Person details management exports
@@ -532,5 +561,6 @@ export const {
   useGetPersonFilesQuery,
   useAddPersonFileMutation,
   useDeletePersonFileMutation,
-  useGetPersonEventsQuery
+  useGetPersonEventsQuery,
+  useClaimPersonMutation,
 } = peopleApi

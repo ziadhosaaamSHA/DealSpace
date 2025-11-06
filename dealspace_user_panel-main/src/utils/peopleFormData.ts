@@ -22,6 +22,11 @@ export const createPersonFormData = (data: CreatePersonRequest): FormData => {
     formData.append("assigned_lender_id", String(data.assigned_lender_id));
   }
 
+  // If creating and a group was selected for assignment/distribution, include it
+  if ((data as any).assign_to_group != null) {
+    formData.append("available_for_group_id", String((data as any).available_for_group_id));
+  }
+
   if (data.picture) {
     formData.append("picture", data.picture);
   }
@@ -90,6 +95,7 @@ export const updatePersonFormData = (data: UpdatePersonRequest): FormData => {
   appendIfDefined("assigned_user_id", Number(data.assigned_user_id) === 0 ? '' : data.assigned_user_id);
   appendIfDefined("assigned_pond_id", Number(data.assigned_pond_id) === 0 ? '' : data.assigned_pond_id);
   appendIfDefined("assigned_lender_id", Number(data.assigned_lender_id) === 0 ? '' : data.assigned_lender_id);
+  appendIfDefined("available_for_group_id", Number(data.available_for_group_id) === 0 ? '' : data.available_for_group_id);
   appendIfDefined("timeframe_id", data.timeframe_id);
   appendIfDefined("background", data.background);
 

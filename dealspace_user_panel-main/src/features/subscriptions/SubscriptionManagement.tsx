@@ -15,9 +15,9 @@ export default function SubscriptionManagement() {
   const [resumeSubscription] = useResumeSubscriptionMutation()
 
   const canManage = tenantStatus?.data?.can_manage ?? false
-  const hasSubscription = tenantStatus?.data?.has_subscription ?? false
+  const hasSubscription = tenantStatus?.data?.subscribed ?? false
   const subscription = tenantStatus?.data?.subscription
-  const subscriptionHolder = tenantStatus?.data?.subscription_holder
+  const subscriptionHolder = tenantStatus?.data?.owner
 
   const handleSubscribe = async (planKey: string) => {
     console.log('Subscribing to plan:', planKey)
@@ -57,45 +57,11 @@ export default function SubscriptionManagement() {
     }
   }
 
-  const handleOpenPortal = async () => {
-    try {
-      const result = await getPortalSession().unwrap()
-      if (result.data?.url) {
-        window.open(result.data.url, '_blank')
-      }
-    } catch (error: any) {
-      toast.error(error?.data?.message || 'Failed to open billing portal')
-    }
+  const handleOpenUsage = async () => {
+    const managementUrl = `/admin/subscriptions/usage/`
+    window.location.href = managementUrl
+    window.open(managementUrl, '_blank')
   }
-
-  const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel your subscription?')) return
-
-    try {
-      await cancelSubscription().unwrap()
-      toast.success('Subscription will be canceled at the end of the billing period')
-      refetch()
-    } catch (error: any) {
-      toast.error(error?.data?.message || 'Failed to cancel subscription')
-    }
-  }
-
-  const handleResume = async () => {
-    try {
-      await resumeSubscription().unwrap()
-      toast.success('Subscription resumed successfully')
-      refetch()
-    } catch (error: any) {
-      toast.error(error?.data?.message || 'Failed to resume subscription')
-    }
-  }
-  const handleRedirectToPlans = () => {
-    // Redirect to external plans management page
-    const plansUrl = `/admin/subscriptions/usage/`
-    window.location.href = plansUrl
-    window.open(plansUrl, '_blank')
-  }
-
   if (isLoadingStatus || isLoadingPlans) {
     return (
       <AdminLayout>
@@ -184,32 +150,12 @@ export default function SubscriptionManagement() {
             {canManage && (
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
-                  onClick={handleOpenPortal}
+                  onClick={handleOpenUsage}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Manage Billing
+                  Manage Plan
                 </button>
-
-                {subscription.canceled && !subscription.on_grace_period ? null : (
-                  <>
-                    {subscription.canceled ? (
-                      <button
-                        onClick={handleResume}
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                      >
-                        Resume Subscription
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleCancel}
-                        className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                      >
-                        Cancel Subscription
-                      </button>
-                    )}
-                  </>
-                )}
               </div>
             )}
           </div>
@@ -281,12 +227,6 @@ export default function SubscriptionManagement() {
                 {subscription?.plan === key && (
                   <div className="text-center text-sm font-medium text-blue-600 py-2">
                     Current Plan
-                    <button
-                      onClick={() => handleRedirectToPlans()}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Manage Plan
-                    </button>
                   </div>
                 )}
               </div>

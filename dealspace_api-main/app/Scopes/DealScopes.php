@@ -16,6 +16,7 @@ trait DealScopes
             RoleEnum::OWNER, RoleEnum::ADMIN => $query,
             RoleEnum::AGENT => $query->where(function (Builder $q) use ($user) {
                 $q->whereHas('users', fn ($qq) => $qq->where('users.id', $user->id))
+                  ->orWhereHas('people', fn ($qq) => $qq->whereHas('collaborators', fn ($qqq) => $qqq->where('user_id', $user->id)))
                   ->orWhereHas('people', fn ($qq) => $qq->where('assigned_user_id', $user->id));
             }),
             RoleEnum::ISAs => $query->whereHas('people', fn ($qq) => $qq->where('assigned_user_id', $user->id)),

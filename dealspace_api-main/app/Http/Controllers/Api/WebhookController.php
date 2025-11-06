@@ -203,12 +203,28 @@ class WebhookController extends CashierWebhookController
             ->first();
 
         if ($subscription) {
-            $subscription->markAsCanceled();
-            
-            Log::info('Subscription marked as canceled', [
+            // Keep ids for logging after deletion
+            $localSubscriptionId = $subscription->id;
+            $stripeSubId = $stripeSubscription['id'];
+
+            // Use central connection transaction to delete items then subscription
+            $deletedItems = 0;
+            $deletedSubscription = 0;
+            DB::connection(config('database.default'))->transaction(function () use ($subscription, &$deletedItems, &$deletedSubscription) {
+                // Delete subscription items first
+                $deletedItems = $subscription->items()->delete();
+
+                // Then delete the subscription row
+                // ->delete() on model returns bool; we convert to int for logging consistency
+                $deletedSubscription = $subscription->delete() ? 1 : 0;
+            });
+
+            Log::info('Subscription and items deleted', [
                 'tenant_id' => $tenant->id,
-                'subscription_id' => $subscription->id,
-                'stripe_subscription_id' => $stripeSubscription['id'],
+                'subscription_id' => $localSubscriptionId,
+                'stripe_subscription_id' => $stripeSubId,
+                'items_deleted' => $deletedItems,
+                'subscriptions_deleted' => $deletedSubscription,
             ]);
         } else {
             Log::warning('Local subscription record not found', [

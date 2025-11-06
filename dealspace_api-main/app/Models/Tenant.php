@@ -123,8 +123,8 @@ class Tenant extends Model implements TenantContract
     {
         return match($feature) {
             'users' => $this->users()->count(),
-            'deals' => DB::connection('tenant')->table('deals')->count(),
-            'contacts' => DB::connection('tenant')->table('contacts')->count(),
+            'deals' => DB::table('deals')->count(),
+            'contacts' => DB::table('people')->count(),
             default => 0,
         };
     }

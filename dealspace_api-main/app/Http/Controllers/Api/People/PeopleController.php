@@ -18,7 +18,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Person;
-use App\Services\Subscriptions\SubscriptionUsageServiceInterface;
 use Illuminate\Support\Facades\Log;
 
 class PeopleController extends Controller
@@ -26,16 +25,13 @@ class PeopleController extends Controller
     use AuthorizesRequests;
     
     protected $personService;
-    protected $usageService;
     protected $leadFlowService; 
 
     public function __construct(
-        PersonServiceInterface $personService, 
-        SubscriptionUsageServiceInterface $usageService,
+        PersonServiceInterface $personService,
         LeadFlowRuleService $leadFlowService // Add this
     ) {
         $this->personService = $personService;
-        $this->usageService = $usageService;
         $this->leadFlowService = $leadFlowService; // Add this
     }
 
@@ -97,22 +93,15 @@ class PeopleController extends Controller
     public function store(StorePeopleRequest $request): JsonResponse
     {
         $user = $request->user();
+        $tenant = $user->tenant;
 
-        // Step 1: Ensure the user has an active subscription
-        if (! $user->subscribed('default')) {
-            return response()->json(['message' => 'Your Dealspace must have an active subscription.'], 402);
+        $usage = $tenant->getFeatureUsage('contacts');
+        $limit = $tenant->planConfig()['limits']['contacts'] ?? null;
+
+        if ($limit !== null && $usage >= $limit) {
+            return response()->json(['message' => 'Contacts limit reached for your current plan. Please upgrade to add more contacts.'], 403);
         }
-
-        // Step 2: Check the user's usage for the 'contacts' feature
-        $usage = $this->usageService->getUsage($user, 'contacts');
-
-        // Step 3: If the limit is reached, return a 403 response
-        if ($usage['limit'] !== null && $usage['used'] >= $usage['limit']) {
-            return response()->json([
-                'message' => 'Your Dealspace has reached its limit for contacts. Please upgrade your plan.'
-            ], 403);
-        }
-
+ 
         Gate::authorize('create', Person::class);
         $person = $this->personService->create($request->validated());
 

@@ -75,6 +75,7 @@ class PeopleImport implements ToCollection, WithHeadingRow, WithValidation, Skip
                     'assigned_lender_name' => $row['assigned_lender_name'] ?? null,
                     'assigned_user_id' => $row['assigned_user_id'] ?? null,
                     'assigned_pond_id' => $row['assigned_pond_id'] ?? null,
+                    'available_for_group_id' => $row['available_for_group_id'] ?? null,
                     'assigned_to' => $row['assigned_to'] ?? null,
                     'timeframe_id' => $row['timeframe_id'] ?? null,
                 ];

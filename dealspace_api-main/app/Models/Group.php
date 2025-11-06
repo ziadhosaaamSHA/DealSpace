@@ -31,6 +31,7 @@ class Group extends Model
         'default_group_id',
         'claim_window',
         'is_primary',
+        'last_assigned_index',
     ];
 
     /**

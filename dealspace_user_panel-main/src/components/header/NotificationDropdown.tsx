@@ -1,11 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Link } from "react-router";
+import { ClaimLeadModal } from "../../features/people/components/ClaimLeadModal"
+import { useGetPersonByIdQuery } from "../../features/people/peopleApi"
+import { toast } from "react-toastify"
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
+  const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null)
+
+  // Get person data if claim modal is open
+  const { data: personData } = useGetPersonByIdQuery(
+    { id: selectedPersonId || 0 },
+    { skip: !selectedPersonId }
+  )
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -19,7 +30,27 @@ export default function NotificationDropdown() {
     toggleDropdown();
     setNotifying(false);
   };
+  const handleNotificationClick = useCallback((notification: any) => {
+    // Check if it's a claim notification by checking the action URL
+    const isClaimAction = notification.action?.includes('claim=1')
+    if (isClaimAction) {
+      // Extract person ID from action URL
+      const personId = Number(notification.action.split('/')[2]?.split('?')[0])
+      if (personId) {
+        setSelectedPersonId(personId)
+        setIsClaimModalOpen(true)
+        return // Don't navigate
+      }
+    }
+
+    // Handle other notification types normally...
+    if (notification.action) {
+      window.location.href = notification.action
+    }
+  }, [])
+
   return (
+    <>
     <div className="relative">
       <button
         className="relative flex items-center justify-center text-white transition-colors  border-2 border-gray-200 rounded-full hover:text-gray-700 h-11 w-11 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
@@ -376,5 +407,19 @@ export default function NotificationDropdown() {
         </Link>
       </Dropdown>
     </div>
+      {/* Add claim modal */}
+      <ClaimLeadModal
+        isOpen={isClaimModalOpen}
+        onClose={() => {
+          setIsClaimModalOpen(false)
+          setSelectedPersonId(null)
+        }}
+        person={personData?.data?.person || null}
+        onSuccess={() => {
+          // Optionally refresh notifications or show success message
+          toast.success("Lead claimed successfully")
+        }}
+      />
+    </>
   );
 }

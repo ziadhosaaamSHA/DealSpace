@@ -50,7 +50,9 @@ class DealPolicy
      */
     public function delete(User $user, Deal $deal): bool
     {
-        return $this->isOwnerOrAdmin($user);
+        return $this->isOwnerOrAdmin($user)
+            || $this->isAssignedPersonAgent($user, $deal)
+            || $this->isAssignedUser($user, $deal);
     }
 
     /**
