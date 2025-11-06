@@ -2,29 +2,39 @@ import GridShape from "../../components/common/GridShape";
 import { Link } from "react-router-dom";
 import PageMeta from "../../components/common/PageMeta";
 
-export default function NotFound() {
+export default function ComingSoon() {
   return (
     <>
       <PageMeta
-        title="404 - Page Not Found | DealSpace"
-        description="The page you are looking for does not exist"
+        title="Coming Soon | DealSpace"
+        description="This feature is coming soon to DealSpace"
       />
       <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1">
         <GridShape />
         <div className="mx-auto w-full max-w-[242px] text-center sm:max-w-[472px]">
           <h1 className="mb-8 font-bold text-gray-800 text-title-md dark:text-white/90 xl:text-title-2xl">
-            ERROR
+            COMING SOON
           </h1>
 
-          <img src="/images/error/404.svg" alt="404" className="dark:hidden" />
-          <img
-            src="/images/error/404-dark.svg"
-            alt="404"
-            className="hidden dark:block"
-          />
+          <div className="flex items-center justify-center mb-8">
+            <svg
+              className="w-64 h-64 text-gray-300 dark:text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
 
           <p className="mt-10 mb-6 text-base text-gray-700 dark:text-gray-400 sm:text-lg">
-            We can’t seem to find the page you are looking for!
+            This feature is under development and will be available soon!
           </p>
 
           <Link

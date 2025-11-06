@@ -1,19 +1,12 @@
-import { useState, useEffect } from 'react'
-import { useGetTenantStatusQuery, useGetPlansQuery, useSubscribeMutation, useGetPortalSessionMutation, useCancelSubscriptionMutation, useResumeSubscriptionMutation } from './subscriptionApi'
+import { useGetTenantStatusQuery, useGetPlansQuery, useSubscribeMutation, } from './subscriptionApi'
 import { toast } from 'react-toastify'
 import { CheckCircle, XCircle, AlertCircle, CreditCard, Users, Crown } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
 import AdminLayout from '../../layout/AdminLayout'
 
 export default function SubscriptionManagement() {
-  const { role } = useAuth()
   const { data: tenantStatus, isLoading: isLoadingStatus, refetch } = useGetTenantStatusQuery()
   const { data: plans, isLoading: isLoadingPlans } = useGetPlansQuery()
   const [subscribe, { isLoading: isSubscribing }] = useSubscribeMutation()
-  const [getPortalSession] = useGetPortalSessionMutation()
-  const [cancelSubscription] = useCancelSubscriptionMutation()
-  const [resumeSubscription] = useResumeSubscriptionMutation()
-
   const canManage = tenantStatus?.data?.can_manage ?? false
   const hasSubscription = tenantStatus?.data?.subscribed ?? false
   const subscription = tenantStatus?.data?.subscription
@@ -167,19 +160,23 @@ export default function SubscriptionManagement() {
             {hasSubscription ? 'Change Plan' : 'Choose a Plan'}
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {plans && Object.entries(plans.data)
-              .filter(([key]) => key !== 'free') // Filter out free plan from subscription options
-              .map(([key, plan]: [string, any]) => (
+              .map(([key, plan]: [string, any]) => {
+                const isCurrentPlan = subscription?.plan === key
+                const isFreeAndNoSubscription = key === 'free' && !hasSubscription
+                const isActivePlan = isCurrentPlan || isFreeAndNoSubscription
+                
+                return (
               <div
                 key={key}
                 className={`bg-white rounded-lg shadow-md p-6 border-2 ${
-                  subscription?.plan === key ? 'border-blue-500' : 'border-gray-200'
+                  isActivePlan ? 'border-blue-500' : 'border-gray-200'
                 }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-gray-900 capitalize">{plan.name || key}</h3>
-                  {subscription?.plan === key && (
+                  {isActivePlan && (
                     <Crown className="w-6 h-6 text-blue-600" />
                   )}
                 </div>
@@ -198,7 +195,7 @@ export default function SubscriptionManagement() {
                   ))}
                 </ul>
 
-                {canManage && subscription?.plan !== key && (
+                {canManage && !isActivePlan && key !== 'free' && (
                   <button
                     onClick={() => handleSubscribe(key)}
                     disabled={isSubscribing}
@@ -218,19 +215,25 @@ export default function SubscriptionManagement() {
                   </button>
                 )}
 
-                {!canManage && (
+                {!canManage && !isActivePlan && key !== 'free' && (
                   <div className="text-center text-sm text-gray-500 py-2">
                     Contact admin to change plan
                   </div>
                 )}
 
-                {subscription?.plan === key && (
+                {isCurrentPlan && (
                   <div className="text-center text-sm font-medium text-blue-600 py-2">
                     Current Plan
                   </div>
                 )}
+
+                {isFreeAndNoSubscription && (
+                  <div className="text-center text-sm font-medium text-gray-600 py-2">
+                    Current Default
+                  </div>
+                )}
               </div>
-            ))}
+            )})}
           </div>
         </div>
       </div>

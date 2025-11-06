@@ -3,10 +3,10 @@ import { customBaseQuery } from "../../app/baseQueryHandler"
 
 interface SubscriptionPlan {
   name: string
-  price_id: string
+  price_id: string | null
   price: number
   features: string[]
-  limits: Record<string, number>
+  limits: Record<string, number | null>
 }
 
 interface TenantStatusResponse {

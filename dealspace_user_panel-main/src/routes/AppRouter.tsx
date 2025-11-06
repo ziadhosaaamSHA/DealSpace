@@ -52,6 +52,7 @@ import SubscriptionUsage from "../features/subscriptions/SubscriptionUsage"
 import VerifySubscription from '../features/subscriptions/VerifySubscription'
 import { LeadFlowRulesPage } from "../features/leadFlowRules/index"
 import { RoleEnum } from "../utils/roles"
+import ComingSoon from "../pages/OtherPage/ComingSoon"
 
 const AppRouter: React.FC = () => {
   return (
@@ -129,6 +130,15 @@ const AppRouter: React.FC = () => {
             <Route path="/integrations" element={<IntegrationsOverview />} />
             <Route path="/integrations/api-keys" element={<ApiKeys />} />
             <Route path="/integrations/dealspace-pixel" element={<TrackingScripts />} />
+
+            {/* Coming Soon Pages - Features under development */}
+            <Route path="/coming-soon" element={<ComingSoon />} />
+            <Route path="/admin/automations" element={<Navigate to="/coming-soon" />} />
+            <Route path="/admin/action-plans" element={<Navigate to="/coming-soon" />} />
+            <Route path="/admin/calling" element={<Navigate to="/coming-soon" />} />
+            <Route path="/admin/import" element={<Navigate to="/coming-soon" />} />
+            <Route path="/inbox" element={<Navigate to="/coming-soon" />} />
+            <Route path="/integrations/api-documentation" element={<Navigate to="/coming-soon" />} />
           </Route>
         </Route>
 

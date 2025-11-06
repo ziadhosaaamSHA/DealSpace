@@ -1,5 +1,10 @@
 export const SUBSCRIPTION_CONFIG = {
   plans: {
+    free: {
+      name: 'Free',
+      color: 'blue',
+      popular: false,
+    },
     basic: {
       name: 'Basic',
       color: 'blue',
